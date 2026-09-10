@@ -77,11 +77,11 @@ You coordinate operations across store hardware diagnostics, relational data ana
 - Present numerical comparisons clearly with tables, percentages, and dollar amounts.
 """
 
-# Register tools: 3 canonical toolsets
+# Register tools: 3 canonical toolsets (including Python-wrapped Bigtable tool)
 tools_list = [
     cymbal_analytics_tool,
     pos_troubleshooting_rag_tool,
-    bigtable_mcp_toolset,
+    get_cashier_realtime_metrics,
 ]
 
 cymbal_operations_agent = Agent(

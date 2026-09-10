@@ -1,29 +1,149 @@
 {
   "eval_cases": [
     {
-      "eval_case_id": "greeting",
+      "eval_case_id": "uc1_1a_hardware_error_recovery",
       "prompt": {
         "role": "user",
-        "parts": [{"text": "Hello, what can you help me with?"}]
-      }
-    },
-    {
-      "eval_case_id": "weather_query",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "What's the weather like in San Francisco?"}]
-      }
-    },
-    {
-      "eval_case_id": "capital_lookup",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "What is the capital of France?"}]
+        "parts": [
+          {
+            "text": "What is the immediate field recovery protocol when a cashier encounters an ERR-PAY-4001 EMV contactless payment freeze, and how do we ensure the customer is not double-charged?"
+          }
+        ]
       },
       "reference": {
         "response": {
           "role": "model",
-          "parts": [{"text": "The capital of France is Paris."}]
+          "parts": [
+            {
+              "text": "To recover from an ERR-PAY-4001 EMV payment freeze on the Toshiba TCx 810, perform the certified field recovery protocol: 1. Power cycle the contactless payment terminal reader. 2. Verify in the register journal that the transaction was voided or aborted before initiating a new charge to prevent double-charging. Refer to the certified Toshiba TCx 810 technical documentation link."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc1_1c_out_of_scope_hardware",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How do I replace the engine oil on a Ford F-150 truck?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "I cannot find certified warranty or repair rules for this specific error in our technical repository. Please contact Support."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc1_2a_stockout_risk",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the estimated cover hours remaining for store inventory positions experiencing stockout risk of less than 20 hours, and what is their total on-hand inventory?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "The store inventory positions experiencing critical stockout risk (< 20.0 hours cover) from the gold inventory reconciliation ledger include Store 24, Store 7, and Store 12. Total on-hand inventory is aggregated and reported with current hourly burn-rates."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc1_3_cashier_realtime_metrics",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Read live 1-hour rolling metrics and audit status flags for Cashier CASH_1190 at Store 48."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Real-time metrics for Cashier CASH_1190 at Store 48 from Cloud Bigtable (prefix STORE_048#CASH_1190): Audit Status: UNDER_REVIEW, Live 1-Hour Manual Override Rate: 23.08%, Total Discounts: $285.50, and 6 manual overrides recorded."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc2_1a_warranty_transaction",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Check transaction details for TXN-20260312-0015811 and show the warranty coverage policy for the purchased item."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Transaction TXN-20260312-0015811 details: Purchased item SKU-ELEC-4091. Warranty terms and coverage policy from BigQuery unstructured extracted data confirm 2-year manufacturer parts and labor warranty with accidental damage handling."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc2_2_dual_cashier_baseline",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is Cashier CASH_1190's live 1-hour override rate right now, compared to their 7-day historical override baseline?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Cashier CASH_1190 has a live 1-hour manual override rate of 23.08% from Bigtable, compared to a 7-day historical override baseline of 2.85% from BigQuery, representing an 8.1x anomaly surge."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc2_3_cross_cloud_offender_audit",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Cashier CASH_1190 at Store 48 is the top offender with 12 active promo abuse alerts in the last 7 days. Cross-cloud AWS S3 BigLake checkout logs for CASH_1190 show repeated stacked promo overrides exceeding thresholds."
+            }
+          ]
         }
       }
     }

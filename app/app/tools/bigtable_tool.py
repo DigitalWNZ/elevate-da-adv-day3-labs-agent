@@ -16,14 +16,14 @@ from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, StreamableHTTPConn
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_BIGTABLE_MCP_URL = os.getenv(
-    "BIGTABLE_MCP_SERVICE_URL",
-    os.getenv("BIGTABLE_MCP_URL", "https://mcp-toolbox-bigtable-7erio3vcqa-uc.a.run.app"),
-)
-IMPERSONATE_SA = os.getenv(
-    "MCP_INVOKER_SERVICE_ACCOUNT",
-    "243199575379-compute@developer.gserviceaccount.com",
-)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+DEFAULT_BIGTABLE_MCP_URL = os.getenv("BIGTABLE_MCP_SERVICE_URL") or os.getenv("BIGTABLE_MCP_URL", "")
+IMPERSONATE_SA = os.getenv("MCP_INVOKER_SERVICE_ACCOUNT", "")
 
 
 def _get_id_token(target_audience: str) -> str:
@@ -37,20 +37,26 @@ def _get_id_token(target_audience: str) -> str:
         except Exception:
             pass
 
-        # Fallback to service account impersonation for user ADC
+        # Fallback to service account impersonation if configured
         source_creds, _ = google.auth.default()
-        target_creds = impersonated_credentials.Credentials(
-            source_credentials=source_creds,
-            target_principal=IMPERSONATE_SA,
-            target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
-        )
-        id_creds = impersonated_credentials.IDTokenCredentials(
-            target_credentials=target_creds,
-            target_audience=target_audience,
-            include_email=True,
-        )
-        id_creds.refresh(auth_req)
-        return id_creds.token
+        if IMPERSONATE_SA:
+            target_creds = impersonated_credentials.Credentials(
+                source_credentials=source_creds,
+                target_principal=IMPERSONATE_SA,
+                target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            )
+            id_creds = impersonated_credentials.IDTokenCredentials(
+                target_credentials=target_creds,
+                target_audience=target_audience,
+                include_email=True,
+            )
+            id_creds.refresh(auth_req)
+            return id_creds.token
+
+        if hasattr(source_creds, "token") and source_creds.token:
+            return source_creds.token
+        source_creds.refresh(auth_req)
+        return getattr(source_creds, "id_token", getattr(source_creds, "token", ""))
     except Exception as e:
         logger.error("Failed to generate OIDC ID token for %s: %s", target_audience, e)
         raise

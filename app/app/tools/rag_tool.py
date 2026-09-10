@@ -11,17 +11,20 @@ from google.cloud import bigquery
 
 logger = logging.getLogger(__name__)
 
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "agolis-allen-first")
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID", "")
 CHUNK_TABLE = os.getenv(
     "POS_CHUNK_EMBEDDINGS_TABLE",
-    f"{PROJECT_ID}.cymbal_gold.pos_manual_chunk_embeddings",
+    f"{PROJECT_ID}.cymbal_gold.pos_manual_chunk_embeddings" if PROJECT_ID else "cymbal_gold.pos_manual_chunk_embeddings",
 )
 SIMILARITY_THRESHOLD = 0.70
 CERTIFIED_WARNING = (
-    "Warning: No certified POS hardware documentation found for this query. "
-    "Ensure the inquiry pertains to supported POS terminal models "
-    "(Toshiba TCx 810, HP Engage One Pro, Diebold Nixdorf BEETLE A1150, "
-    "Clover Station Solo, or NCR Voyix RealPOS XR7)."
+    "I cannot find certified warranty or repair rules for this specific error in our technical repository. Please contact Support."
 )
 
 
@@ -47,11 +50,15 @@ def pos_troubleshooting_rag_tool(query: str) -> str:
         A markdown-formatted technical diagnostics runbook with step-by-step recovery SOPs,
         equipment details, similarity score, and certified documentation link.
     """
-    client = bigquery.Client(project=PROJECT_ID)
+    client = bigquery.Client(project=PROJECT_ID) if PROJECT_ID else bigquery.Client()
     max_retries = 3
     delay = 1.5
 
-    # 1. Vector Search Query with Adjacent Context Stitching
+    # Inline error code regex parsing
+    error_match = re.search(r"\b[A-Za-z0-9]+-[A-Za-z0-9-]+\b", query)
+    error_code = error_match.group(0) if error_match else ""
+
+    # 1. Vector Search Query with Adjacent Context Stitching and CASE WHEN Boosting
     vector_sql = f"""
     WITH query_emb AS (
       SELECT AI.EMBED(@query_text, endpoint => "text-embedding-005").result AS q_emb
@@ -64,12 +71,18 @@ def pos_troubleshooting_rag_tool(query: str) -> str:
         base.source_pdf_uri,
         base.chunk_index,
         base.chunk_content,
-        ROUND(1 - distance, 4) AS similarity_score
+        CASE
+          WHEN @error_code != '' AND (
+            REGEXP_CONTAINS(base.chunk_content, CONCAT(r'(?i)', @error_code))
+            OR REGEXP_CONTAINS(base.document_title, CONCAT(r'(?i)', @error_code))
+          ) THEN LEAST(1.0, ROUND(1 - distance, 4) + 0.30)
+          ELSE ROUND(1 - distance, 4)
+        END AS similarity_score
       FROM VECTOR_SEARCH(
         TABLE `{CHUNK_TABLE}`,
         "embedding",
         TABLE query_emb,
-        top_k => 3,
+        top_k => 10,
         distance_type => "COSINE"
       )
     )
@@ -103,6 +116,7 @@ def pos_troubleshooting_rag_tool(query: str) -> str:
             job_config = bigquery.QueryJobConfig(
                 query_parameters=[
                     bigquery.ScalarQueryParameter("query_text", "STRING", query),
+                    bigquery.ScalarQueryParameter("error_code", "STRING", error_code),
                     bigquery.ScalarQueryParameter("delim", "STRING", "\n\n"),
                 ],
                 labels={"datacloud": "jetski"},

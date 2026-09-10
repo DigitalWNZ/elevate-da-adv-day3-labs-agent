@@ -12,10 +12,19 @@ from google.adk.tools.data_agent.data_agent_tool import ask_data_agent
 
 logger = logging.getLogger(__name__)
 
-DATA_AGENT_NAME = os.getenv(
-    "DATA_AGENT_NAME",
-    "projects/agolis-allen-first/locations/global/dataAgents/agent_47df9de5-42f8-4c6a-b908-03e6d09f2868",
-)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID", "")
+DATA_AGENT_ID = os.getenv("DATA_AGENT_ID", "")
+DATA_AGENT_NAME = os.getenv("DATA_AGENT_NAME")
+if not DATA_AGENT_NAME and PROJECT_ID and DATA_AGENT_ID:
+    DATA_AGENT_NAME = f"projects/{PROJECT_ID}/locations/global/dataAgents/{DATA_AGENT_ID}"
+elif not DATA_AGENT_NAME:
+    DATA_AGENT_NAME = ""
 
 
 def cymbal_analytics_tool(query: str) -> str:
