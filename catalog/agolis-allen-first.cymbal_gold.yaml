@@ -1,0 +1,25 @@
+name: agolis-allen-first.cymbal_gold
+type: dataplex-types.global.bigquery-dataset
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold
+  displayName: cymbal_gold
+  description: This BigQuery dataset provides a comprehensive collection of retail
+    operational data, encompassing point-of-sale transactions, inventory
+    management, and product traceability. It captures real-time and historical
+    sales activities, including customer details, payment methods, and
+    item-level information. The dataset also tracks daily inventory levels,
+    reconciliation statuses, and estimated stockout risks across various store
+    locations. Furthermore, it includes detailed product recall information,
+    supplier data, and warranty documentation for comprehensive supply chain and
+    customer service analysis. This data supports robust analysis of sales
+    trends, customer behavior, inventory optimization, fraud detection, and
+    product lifecycle management.
+  labels:
+    goog-terraform-provisioned: "true"
+    dataplex-data-documentation-published-project: agolis-allen-first
+    dataplex-data-documentation-published-location: us-central1
+    dataplex-data-documentation-published-scan: ac78c47f8-6b4a-4750-832c-d05ddcf60bc7
+  location: us-central1
+  createTime: 2026-09-08T05:37:51.540Z
+  updateTime: 2026-09-10T06:52:45.113Z
+aspects: {}

@@ -1,0 +1,24 @@
+name: agolis-allen-first.cymbal_gold/gold_inventory_reconciliation_ledger
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/gold_inventory_reconciliation_ledger
+  displayName: gold_inventory_reconciliation_ledger
+  description: Daily reconciled store inventory ledger tracking opening balance,
+    shelf/backroom quantities, intraday revenue, and remaining cover hours for
+    stockout risk analysis.
+  labels:
+    goog-terraform-provisioned: "true"
+    dataplex-dp-published-scan: cymbal-gold-dataset-profil-cb41e20a-3dd1-4981-8788-353b22a46417
+    dataplex-data-documentation-published-location: us-central1
+    dataplex-dp-published-project: agolis-allen-first
+    datacloud: antigravity
+    dataplex-dp-published-location: us-central1
+    dataplex-data-documentation-published-project: agolis-allen-first
+    dataplex-data-documentation-published-scan: a4513101f-ce31-4fb0-8975-be1e9a9f5425
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-08T05:39:12.823Z
+  updateTime: 2026-09-10T06:45:32.074Z
+aspects: {}

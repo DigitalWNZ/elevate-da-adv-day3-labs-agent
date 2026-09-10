@@ -1,0 +1,12 @@
+name: agolis-allen-first.cymbal_gold/aws_pos_transactions_gold2
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/aws_pos_transactions_gold2
+  displayName: aws_pos_transactions_gold2
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-09T06:42:56.633Z
+  updateTime: 2026-09-09T06:44:07.258Z
+aspects: {}

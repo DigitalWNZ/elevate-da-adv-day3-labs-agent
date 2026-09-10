@@ -1,0 +1,23 @@
+name: agolis-allen-first.cymbal_gold/pos_transactions_gold
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/pos_transactions_gold
+  displayName: pos_transactions_gold
+  description: Real-time streaming intraday POS sales transactions with customer
+    PII for daily store revenue and sales KPI monitoring. (Use for today's sales
+    and daily revenue KPIs).
+  labels:
+    goog-terraform-provisioned: "true"
+    dataplex-dp-published-scan: cymbal-gold-dataset-profil-6f535087-51fb-45d9-8259-62d89e99fa9b
+    dataplex-data-documentation-published-location: us-central1
+    dataplex-dp-published-project: agolis-allen-first
+    dataplex-dp-published-location: us-central1
+    dataplex-data-documentation-published-project: agolis-allen-first
+    dataplex-data-documentation-published-scan: a6dbdd433-cec7-47e1-b9c5-6060d5d982e2
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-10T01:57:42.766Z
+  updateTime: 2026-09-10T06:44:22.594Z
+aspects: {}

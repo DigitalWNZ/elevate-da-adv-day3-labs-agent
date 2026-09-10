@@ -1,0 +1,25 @@
+name: agolis-allen-first.cymbal_gold/pos_anomaly_alerts
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/pos_anomaly_alerts
+  displayName: pos_anomaly_alerts
+  description: "Historical multi-day cashier anomaly and promo abuse alert ledger
+    (partitioned by alert_ts). Primary table for multi-day trend analysis,
+    7-day/30-day top offender rankings, and historical override rate
+    calculations. (NOTE: For real-time 1-hour live audit status and streaming
+    flags, query Cloud Bigtable operational cache)."
+  labels:
+    goog-terraform-provisioned: "true"
+    dataplex-dp-published-scan: cymbal-gold-dataset-profil-3932fe70-a07c-47a2-b612-11dabe6eeb5f
+    dataplex-data-documentation-published-location: us-central1
+    dataplex-dp-published-project: agolis-allen-first
+    dataplex-dp-published-location: us-central1
+    dataplex-data-documentation-published-project: agolis-allen-first
+    dataplex-data-documentation-published-scan: a63507298-a481-460f-8bd7-a0ff846191ea
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-10T02:12:57.301Z
+  updateTime: 2026-09-10T06:44:41.826Z
+aspects: {}

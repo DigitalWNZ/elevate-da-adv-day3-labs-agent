@@ -1,0 +1,41 @@
+kind: source
+name: operations-db
+type: bigtable
+project: agolis-allen-first
+instance: operations-db
+---
+kind: tool
+name: get_cashier_realtime_metrics
+type: bigtable-sql
+source: operations-db
+description: Query live 1-hour rolling metrics and audit status flags for a cashier from Cloud Bigtable table cashier_realtime_alerts by row key prefix (e.g. STORE_048#CASH_1190).
+parameters:
+  - name: row_key_prefix
+    type: string
+    description: Row key prefix formatted as STORE_<store_id_3digits>#CASH_<cashier_id_4digits>, e.g. STORE_048#CASH_1190
+statement: |
+  SELECT
+    CAST(_key AS STRING) AS row_key,
+    CAST(flags['audit_status'] AS string) AS audit_status,
+    CAST(stats['last_event_ts'] AS string) AS last_event_ts,
+    TO_FLOAT64(stats['cashier_1h_avg_discount_pct']) AS avg_discount_pct,
+    TO_INT64(stats['cashier_1h_manual_override_count']) AS manual_override_count,
+    TO_INT64(stats['cashier_1h_promo_count']) AS promo_count,
+    TO_FLOAT64(stats['cashier_1h_promo_rate']) AS promo_rate,
+    TO_FLOAT64(stats['cashier_1h_total_discount_usd']) AS total_discount_usd,
+    TO_INT64(stats['cashier_1h_txn_count']) AS txn_count,
+    TO_FLOAT64(stats['risk_score']) AS risk_score
+  FROM cashier_realtime_alerts
+  WHERE CAST(_key AS STRING) LIKE CONCAT(@row_key_prefix, '%')
+  ORDER BY CAST(_key AS STRING) DESC
+  LIMIT 5;
+---
+kind: tool
+name: bigtable-list-tables
+type: bigtable-list-tables
+source: operations-db
+---
+kind: tool
+name: bigtable-list-schemas
+type: bigtable-list-schemas
+source: operations-db

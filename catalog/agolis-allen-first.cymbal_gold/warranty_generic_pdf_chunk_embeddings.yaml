@@ -1,0 +1,12 @@
+name: agolis-allen-first.cymbal_gold/warranty_generic_pdf_chunk_embeddings
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/warranty_generic_pdf_chunk_embeddings
+  displayName: warranty_generic_pdf_chunk_embeddings
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-09T06:10:37.158Z
+  updateTime: 2026-09-09T06:11:38.187Z
+aspects: {}

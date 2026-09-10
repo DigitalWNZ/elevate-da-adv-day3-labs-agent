@@ -1,0 +1,22 @@
+name: agolis-allen-first.cymbal_gold/historical_transactional_data
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/historical_transactional_data
+  displayName: historical_transactional_data
+  description: Historical customer item purchase transactions used strictly for
+    product warranty claims triage and returns eligibility. (Use for customer
+    purchase verification in warranty workflows).
+  labels:
+    dataplex-dp-published-scan: cymbal-gold-dataset-profil-adcc28b5-ccc3-4eb2-bd14-ef6ada526f58
+    dataplex-data-documentation-published-location: us-central1
+    dataplex-dp-published-project: agolis-allen-first
+    dataplex-dp-published-location: us-central1
+    dataplex-data-documentation-published-project: agolis-allen-first
+    dataplex-data-documentation-published-scan: a9d05c317-58e9-4db5-b227-490c469c0653
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-08T06:00:40.861Z
+  updateTime: 2026-09-10T06:45:10.599Z
+aspects: {}

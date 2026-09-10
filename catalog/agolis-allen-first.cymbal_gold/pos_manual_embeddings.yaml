@@ -1,0 +1,12 @@
+name: agolis-allen-first.cymbal_gold/pos_manual_embeddings
+type: dataplex-types.global.bigquery-table
+resource:
+  name: projects/agolis-allen-first/datasets/cymbal_gold/tables/pos_manual_embeddings
+  displayName: pos_manual_embeddings
+  location: us-central1
+  ancestors:
+    - name: projects/agolis-allen-first/datasets/cymbal_gold
+      type: dataplex-types.global.bigquery-dataset
+  createTime: 2026-09-09T06:01:49.955Z
+  updateTime: 2026-09-09T06:01:49.955Z
+aspects: {}
