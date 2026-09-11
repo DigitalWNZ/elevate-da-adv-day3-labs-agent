@@ -34,6 +34,7 @@ from app.tools.analytics_tool import cymbal_analytics_tool
 from app.tools.bigtable_tool import (
     bigtable_mcp_toolset,
     get_cashier_realtime_metrics,
+    read_cashier_realtime_alerts,
     read_cashier_realtime_alerts_sql,
     read_pos_transactions_enriched_sql,
 )
@@ -137,7 +138,7 @@ def test_bigtable_cashier_realtime_alerts_metrics_and_markdown() -> None:
         mock_resp.json.return_value = sample_response_data
         mock_post.return_value = mock_resp
 
-        # Test both canonical and alias functions
+        # Test canonical function, sql function, and backward-compatible alias
         res1 = read_cashier_realtime_alerts_sql("STORE_048#CASH_1190")
         assert "Real-Time Cashier Metrics for `STORE_048#CASH_1190`" in res1
         assert "`UNDER_REVIEW`" in res1
@@ -145,8 +146,11 @@ def test_bigtable_cashier_realtime_alerts_metrics_and_markdown() -> None:
         assert "$285.50" in res1
         assert "0.8872" in res1
 
-        res2 = get_cashier_realtime_metrics("STORE_048#CASH_1190")
+        res2 = read_cashier_realtime_alerts("STORE_048#CASH_1190")
         assert res2 == res1
+
+        res3 = get_cashier_realtime_metrics("STORE_048#CASH_1190")
+        assert res3 == res1
 
 
 def test_bigtable_pos_transactions_enriched_markdown() -> None:
@@ -205,7 +209,13 @@ def test_analytics_tool_fallback_on_exception() -> None:
     """Tests that analytics tool returns the required fallback string when unreachable."""
     with patch("app.tools.analytics_tool.ask_data_agent", side_effect=Exception("Database connection timeout")):
         res = cymbal_analytics_tool("What is the Net Transaction Revenue for Store 48?")
-        assert res == "Store data is currently unreachable. Please verify database connectivity."
+        assert res == "Regional Store data is currently unreachable. Please verify database connectivity."
+
+
+def test_analytics_tool_disruption_interception() -> None:
+    """Tests that analytics tool detects simulated disruption keywords and returns certified fallback without calling DB."""
+    res = cymbal_analytics_tool("Query the database for live inventory levels while the enterprise warehouse connection is temporarily disrupted.")
+    assert res == "Regional Store data is currently unreachable. Please verify database connectivity."
 
 
 def test_coordinator_agent_structure_and_bindings() -> None:
@@ -221,11 +231,14 @@ def test_coordinator_agent_structure_and_bindings() -> None:
     assert "pos_troubleshooting_rag_tool" in instructions
     assert "cymbal_analytics_tool" in instructions
     assert "bigtable_mcp_toolset" in instructions
+    assert "read_cashier_realtime_alerts" in instructions
     assert "read_cashier_realtime_alerts_sql" in instructions
     assert "read_pos_transactions_enriched_sql" in instructions
     assert "Parallel Tool Dispatch" in instructions
     assert "Sequential Multi-Turn Dispatch" in instructions
     assert "Mandatory Partition Clarification Guardrail" in instructions
+    assert "Temporal State Invalidation & Session Recalibration" in instructions
+    assert "Database Fault Tolerance & Unreachable Fallback" in instructions
     assert cymbal_operations_agent.before_agent_callback is partition_clarification_and_temporal_state_guardrail
 
 
@@ -240,6 +253,7 @@ def test_partition_clarification_and_temporal_guardrail() -> None:
     }
     mock_context = MagicMock()
     mock_context.session = mock_session
+    mock_context.user_content = None
 
     partition_clarification_and_temporal_state_guardrail(mock_context)
 
@@ -255,6 +269,19 @@ def test_partition_clarification_and_temporal_guardrail() -> None:
         "last_active_ts": recent_time,
         "active_data": "persist",
     }
-    partition_clarification_and_temporal_state_guardrail(mock_context)
+    mock_context2 = MagicMock()
+    mock_context2.session = mock_session
+    mock_context2.user_content = None
+
+    partition_clarification_and_temporal_state_guardrail(mock_context2)
     assert mock_session.state["active_data"] == "persist"
     assert mock_session.state["partition_guardrail_enforced"] is True
+
+    # Test 3: Database Fault Tolerance Interception (NFR-4.1)
+    mock_context3 = MagicMock()
+    mock_part = MagicMock()
+    mock_part.text = "Query the database for live inventory levels while the enterprise warehouse connection is temporarily disrupted."
+    mock_context3.user_content.parts = [mock_part]
+    intercept_content = partition_clarification_and_temporal_state_guardrail(mock_context3)
+    assert intercept_content is not None
+    assert intercept_content.parts[0].text == "Regional Store data is currently unreachable. Please verify database connectivity."

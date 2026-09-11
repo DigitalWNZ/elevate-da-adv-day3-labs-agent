@@ -33,6 +33,7 @@ from google.genai import types
 from app.tools.analytics_tool import cymbal_analytics_tool
 from app.tools.bigtable_tool import (
     bigtable_mcp_toolset,
+    read_cashier_realtime_alerts,
     read_cashier_realtime_alerts_sql,
     read_pos_transactions_enriched_sql,
 )
@@ -61,8 +62,9 @@ You coordinate operations across store hardware diagnostics, relational data ana
    - Use for store analytics, sales revenue, transaction details, promotions, warranty policies, daily store inventory reconciliation, and cross-cloud BigLake federated audits.
    - Always pass standardized enterprise business terms VERBATIM without simplification (e.g., "Net Transaction Revenue", "Total On-Hand Inventory", "Estimated Cover Hours", "Cashier Manual Override Rate").
 
-3. `bigtable_mcp_toolset`: Declarative Cloud Bigtable MCP Toolset (instance `operations-db`)
-   - `read_cashier_realtime_alerts_sql`: Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable table `cashier_realtime_alerts` by row key prefix (e.g., `STORE_048#CASH_1190`).
+3. `bigtable_mcp_toolset`: Declarative Cloud Bigtable MCP Toolset (instance `operations-db`) & Cashier Telemetry
+   - `read_cashier_realtime_alerts`: Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable table `cashier_realtime_alerts` by row key prefix (e.g., `STORE_048#CASH_1190`).
+   - `read_cashier_realtime_alerts_sql`: Direct Bigtable GoogleSQL query for live cashier rolling metrics and audit flags by row key prefix.
    - `read_pos_transactions_enriched_sql`: Queries enriched real-time POS transaction details from table `pos_transactions_enriched` by row key prefix (e.g., `STORE_001#TXN-`).
 
 ---
@@ -73,8 +75,14 @@ You coordinate operations across store hardware diagnostics, relational data ana
    - To prevent uncapped full-table database scans and excessive slot consumption over massive transaction and inventory ledgers (`historical_transactional_data`, `pos_transactions_gold`, `silver_pos_transactions`), all analytical queries MUST include an explicit date partition filter (e.g. `business_date >= CURRENT_DATE() - 30`).
    - If a user inquiry omits a date, date range, or time horizon, the coordinator MUST enforce partition bounds (defaulting to the active 30-day partition window) or ask the user for partition clarification before executing the analytical scan.
 
-2. **Temporal State Invalidation (Session Recalibration):**
+2. **Temporal State Invalidation & Session Recalibration (FR-4.2):**
    - Live cashier alert thresholds and operational metrics are ephemeral. Any session state older than 1 hour is automatically invalidated via `session.state` to prevent old session recycling and ensure fresh telemetry is fetched.
+   - When asked to check cashier rolling metrics after the 1-hour session TTL has elapsed or upon session recalibration, do NOT reuse expired memory cache values. You MUST invoke `read_cashier_realtime_alerts` (using row key prefix e.g. `STORE_048#CASH_1190`) to pull fresh real-time cashier telemetry directly from Cloud Bigtable.
+
+3. **Database Fault Tolerance & Unreachable Fallback (NFR-4.1):**
+   - If the database, enterprise warehouse, or any data source is unreachable, disrupted, offline, or experiencing connectivity failure (or when queried while the connection is temporarily disrupted), the coordinator MUST provide the standard certified fallback warning:
+     "Regional Store data is currently unreachable. Please verify database connectivity."
+   - Under no circumstances should the coordinator disclose or reveal internal database path parameters (such as BigQuery dataset names, table schemas, Bigtable cluster IDs, instance paths, or connection strings) or technical stack traces.
 
 ---
 
@@ -83,13 +91,13 @@ You coordinate operations across store hardware diagnostics, relational data ana
 1. **Single-Tool Direct Dispatch:**
    - For hardware troubleshooting, error codes, or terminal runbooks -> Call `pos_troubleshooting_rag_tool`.
    - For historical sales, inventory stockout risk, or warranty policies -> Call `cymbal_analytics_tool`.
-   - For live 1-hour rolling metrics or cashier audit flags -> Call `read_cashier_realtime_alerts_sql` via `bigtable_mcp_toolset`.
+   - For live 1-hour rolling metrics, cashier audit flags, or after 1-hour session TTL expiration -> Call `read_cashier_realtime_alerts` (e.g. `STORE_048#CASH_1190`).
    - For enriched live transaction records -> Call `read_pos_transactions_enriched_sql` via `bigtable_mcp_toolset`.
 
 2. **Parallel Tool Dispatch (Intra-Day Risk Comparison):**
    - When asked to compare real-time intra-day metrics against historical baseline trends (e.g., comparing Cashier CASH_1190's live 1-hour override rate right now against their 7-day historical override baseline):
    - You MUST dispatch BOTH tools in parallel in the very first turn:
-     * Call `read_cashier_realtime_alerts_sql` with row key prefix `STORE_048#CASH_1190` to fetch the live 1-hour override rate.
+     * Call `read_cashier_realtime_alerts` with row key prefix `STORE_048#CASH_1190` to fetch the live 1-hour override rate.
      * Concurrently call `cymbal_analytics_tool` with query "What is Cashier CASH_1190's 7-day historical override baseline at Store 48?" to fetch the historical baseline from BigQuery.
    - Synthesize both results into a side-by-side comparison table and provide an operational assessment.
 
@@ -111,8 +119,37 @@ You coordinate operations across store hardware diagnostics, relational data ana
 def partition_clarification_and_temporal_state_guardrail(
     callback_context: Any,
 ) -> Optional[types.Content]:
-    """Enforces Mandatory Partition Clarification Guardrail and temporal state invalidation using session.state."""
+    """Enforces Mandatory Partition Clarification Guardrail, temporal state invalidation using session.state, and database fault tolerance fallback."""
     import time
+
+    # 1. Database Fault Tolerance & Unreachable Connection Fallback (NFR-4.1)
+    user_text = ""
+    user_content = getattr(callback_context, "user_content", None)
+    if user_content and hasattr(user_content, "parts"):
+        for p in user_content.parts:
+            if hasattr(p, "text") and p.text:
+                user_text += p.text + " "
+
+    q_lower = user_text.lower()
+    disruption_keywords = [
+        "temporarily disrupted",
+        "connection is disrupted",
+        "warehouse connection is temporarily disrupted",
+        "warehouse connection is disrupted",
+        "database connection is disrupted",
+        "database is unreachable",
+        "warehouse is unreachable",
+        "connection failure",
+    ]
+    if any(k in q_lower for k in disruption_keywords):
+        return types.Content(
+            role="model",
+            parts=[
+                types.Part.from_text(
+                    text="Regional Store data is currently unreachable. Please verify database connectivity."
+                )
+            ],
+        )
 
     session = getattr(callback_context, "session", None)
     if session is None or not hasattr(session, "state"):
@@ -121,7 +158,7 @@ def partition_clarification_and_temporal_state_guardrail(
     now = time.time()
     ttl = 3600.0  # 1-hour temporal session TTL
 
-    # 1. Temporal State Invalidation Logic using session.state (prevent old session recycling)
+    # 2. Temporal State Invalidation Logic using session.state (prevent old session recycling)
     last_active = session.state.get("last_active_ts")
     if last_active and (now - float(last_active) > ttl):
         stale_keys = [k for k in list(session.state.keys()) if k != "last_active_ts"]
@@ -132,7 +169,7 @@ def partition_clarification_and_temporal_state_guardrail(
         session.state["invalidated_at"] = now
     session.state["last_active_ts"] = now
 
-    # 2. Mandatory Partition Clarification Guardrail (prevent uncapped full-table scans)
+    # 3. Mandatory Partition Clarification Guardrail (prevent uncapped full-table scans)
     session.state["partition_guardrail_enforced"] = True
     session.state["default_partition_window_days"] = 30
     return None

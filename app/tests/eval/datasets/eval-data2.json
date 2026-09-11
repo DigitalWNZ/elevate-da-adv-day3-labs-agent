@@ -148,7 +148,7 @@
           "role": "model",
           "parts": [
             {
-              "text": "Store data is currently unreachable. Please verify database connectivity."
+              "text": "Regional Store data is currently unreachable. Please verify database connectivity."
             }
           ]
         }
@@ -170,7 +170,7 @@
           "role": "model",
           "parts": [
             {
-              "text": "Session state invalidated due to 1-hour temporal expiration. Recalibrating session state and fetching fresh real-time metrics from Cloud Bigtable."
+              "text": "Session state invalidated due to 1-hour temporal expiration. Recalibrating session state and invoking read_cashier_realtime_alerts to fetch fresh real-time metrics directly from Cloud Bigtable."
             }
           ]
         }

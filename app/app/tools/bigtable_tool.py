@@ -155,11 +155,25 @@ def read_cashier_realtime_alerts_sql(row_key_prefix: str) -> str:
             time.sleep(delay)
             delay *= 2
 
-    return f"Unable to reach Bigtable MCP service for row key `{row_key_prefix}`. Please verify microservice health."
+    return "Regional Store data is currently unreachable. Please verify database connectivity."
 
 
-# Alias for backward compatibility
-get_cashier_realtime_metrics = read_cashier_realtime_alerts_sql
+def read_cashier_realtime_alerts(row_key_prefix: str) -> str:
+    """Reads the latest 1-hour rolling metrics and audit status flags for a cashier from Cloud Bigtable.
+
+    Args:
+        row_key_prefix: Row key prefix formatted as 'STORE_<ID>#CASH_<ID>' (e.g. 'STORE_048#CASH_1190').
+
+    Returns:
+        Structured markdown containing the latest 1-hour rolling window metrics and audit status.
+    """
+    return read_cashier_realtime_alerts_sql(row_key_prefix)
+
+
+def get_cashier_realtime_metrics(row_key_prefix: str) -> str:
+    """Alias for read_cashier_realtime_alerts for backward compatibility."""
+    return read_cashier_realtime_alerts_sql(row_key_prefix)
+
 
 
 def read_pos_transactions_enriched_sql(row_key_prefix: str) -> str:
@@ -247,7 +261,7 @@ def read_pos_transactions_enriched_sql(row_key_prefix: str) -> str:
             time.sleep(delay)
             delay *= 2
 
-    return f"Unable to reach Bigtable MCP service for row key `{row_key_prefix}`. Please verify microservice health."
+    return "Regional Store data is currently unreachable. Please verify database connectivity."
 
 
 def create_bigtable_mcp_toolset() -> McpToolset:

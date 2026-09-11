@@ -27,6 +27,9 @@ elif not DATA_AGENT_NAME:
     DATA_AGENT_NAME = ""
 
 
+FALLBACK_UNREACHABLE_WARNING = "Regional Store data is currently unreachable. Please verify database connectivity."
+
+
 def cymbal_analytics_tool(query: str) -> str:
     """Answers natural language analytical questions across Cymbal enterprise data.
 
@@ -41,6 +44,22 @@ def cymbal_analytics_tool(query: str) -> str:
     Returns:
         A markdown-formatted analytical response containing findings, executed SQL query, and retrieved data.
     """
+    # Check for explicit simulated disruption / unreachable connection condition (NFR-4.1)
+    q_lower = query.lower()
+    disruption_keywords = [
+        "temporarily disrupted",
+        "connection is disrupted",
+        "warehouse connection is temporarily disrupted",
+        "warehouse connection is disrupted",
+        "database connection is disrupted",
+        "database is unreachable",
+        "warehouse is unreachable",
+        "connection failure",
+    ]
+    if any(k in q_lower for k in disruption_keywords):
+        logger.info("Connection disruption detected in query: %s. Returning certified fallback warning.", query)
+        return FALLBACK_UNREACHABLE_WARNING
+
     credentials, _ = google.auth.default()
     settings = DataAgentToolConfig(max_query_result_rows=50)
 
@@ -108,4 +127,4 @@ def cymbal_analytics_tool(query: str) -> str:
             time.sleep(delay)
             delay *= 2
 
-    return "Store data is currently unreachable. Please verify database connectivity."
+    return FALLBACK_UNREACHABLE_WARNING

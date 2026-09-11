@@ -3,5 +3,12 @@
   "deployment_target": "agent_runtime",
   "is_a2a": true,
   "agent_directory": "app",
-  "deployment_timestamp": "2026-09-11T01:51:42.527797+00:00"
+  "deployment_timestamp": "2026-09-11T01:51:42.527797+00:00",
+  "pending_operation": {
+    "operation_name": "projects/243199575379/locations/us-central1/reasoningEngines/6870291259332755456/operations/7556596199663337472",
+    "project": "agolis-allen-first",
+    "location": "us-central1",
+    "deployment_target": "agent_runtime",
+    "started_at": "2026-09-11T02:35:27.174850+00:00"
+  }
 }
