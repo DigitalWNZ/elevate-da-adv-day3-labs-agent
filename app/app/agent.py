@@ -12,21 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
+from typing import Any, Optional
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.models import Gemini
+from google.adk.plugins.bigquery_agent_analytics_plugin import (
+    BigQueryAgentAnalyticsPlugin,
+)
 from google.genai import types
 
-from typing import Any, Optional
 from app.tools.analytics_tool import cymbal_analytics_tool
-from app.tools.rag_tool import pos_troubleshooting_rag_tool
 from app.tools.bigtable_tool import (
     bigtable_mcp_toolset,
     read_cashier_realtime_alerts_sql,
     read_pos_transactions_enriched_sql,
 )
+from app.tools.rag_tool import pos_troubleshooting_rag_tool
 
+logger = logging.getLogger(__name__)
+
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID", "")
+BQ_TELEMETRY_DATASET = os.getenv("BQ_TELEMETRY_DATASET", "agent_telemetry")
+REGION = os.getenv("REGION") or os.getenv("GCP_REGION", "us-central1")
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 AGENT_INSTRUCTIONS = """
@@ -143,8 +159,22 @@ cymbal_operations_agent = Agent(
 # Root agent export for backward compatibility with ADK runners and FastAPI
 root_agent = cymbal_operations_agent
 
+# Initialize BigQueryAgentAnalyticsPlugin for runtime telemetry
+plugins = []
+if PROJECT_ID and BQ_TELEMETRY_DATASET:
+    try:
+        telemetry_plugin = BigQueryAgentAnalyticsPlugin(
+            project_id=PROJECT_ID,
+            dataset_id=BQ_TELEMETRY_DATASET,
+            location=REGION,
+        )
+        plugins.append(telemetry_plugin)
+    except Exception as e:
+        logger.warning("Could not initialize BigQueryAgentAnalyticsPlugin: %s", e)
+
 app = App(
     root_agent=cymbal_operations_agent,
     name="app",
+    plugins=plugins,
 )
 

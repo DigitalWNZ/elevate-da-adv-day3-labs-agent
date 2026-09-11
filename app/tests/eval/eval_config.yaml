@@ -1,9 +1,18 @@
+# Evaluation configuration for Cymbal Retail Operations Portal
 metrics_to_run:
+  - tool_use_quality
+  - grounding
   - custom_response_quality
+  - agent_turn_count
+
+thresholds:
+  tool_use_quality: 0.85
+  grounding: 0.80
+  custom_response_quality: 4.0
+  overall_quality_gate: 4.0
 
 custom_metrics:
-  # Default: local LLM-as-judge (see response_quality.py). Runs in-process via
-  # google-genai on Agent Platform (ADC) or Google AI Studio (GEMINI_API_KEY).
+  # Local LLM-as-judge scoring response quality and groundedness
   - name: custom_response_quality
     custom_function_file: response_quality.py
   - name: agent_turn_count

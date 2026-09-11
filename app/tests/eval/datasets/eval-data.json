@@ -1,0 +1,180 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "eval_uc1_1_emv_freeze_recovery",
+      "description": "UC 1.1: Single-turn hardware recovery SOP for Toshiba TCx 810 EMV contactless freeze (ERR-PAY-4001).",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the immediate field recovery protocol when a cashier encounters an ERR-PAY-4001 EMV contactless payment freeze, and how do we ensure the customer is not double-charged?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "To recover from an ERR-PAY-4001 EMV payment freeze on the Toshiba TCx 810: 1. Do not re-swipe or recharge immediately to prevent double charging. 2. Hold Yellow + # on the PIN pad for 3 seconds to reboot the payment module. 3. Check 12V PoweredUSB cabling. 4. Open Manager Menu -> Journal Audit Slip to check transaction status. If AUTHORIZED_UNSETTLED, print receipt slip; if VOIDED_ERROR, re-scan items and request card presentation. Reference manual: https://storage.cloud.google.com/cymbal-ops-runbooks/pos_manual_toshiba_tcx810.pdf"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc1_1_printer_knife_lock",
+      "description": "UC 1.1: Diebold Nixdorf BEETLE A1150 thermal printer cutter lockup error (ERR-DN-PRNT-24V).",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How do store clerks resolve a terminal thermal printer cutter lock error code ERR-DN-PRNT-24V on a Diebold Nixdorf BEETLE A1150?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "For Diebold Nixdorf BEETLE A1150 error ERR-DN-PRNT-24V (cutter knife lockup): 1. Turn off printer power before manual manipulation. 2. Open printer cover and rotate manual feed knob counter-clockwise to retract the cutter blade. 3. Clear jammed paper shreds and perform test feed. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc1_2_stockout_risk_cover",
+      "description": "UC 1.2: Relational analytics querying gold inventory ledger for critical stockout positions (< 20 hours cover).",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the estimated cover hours remaining for store inventory positions experiencing stockout risk of less than 20 hours, and what is their total on-hand inventory?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Store inventory positions with critical stockout risk (< 20.0 hours cover) from the gold inventory reconciliation ledger include Store 24 (12.4 hrs cover, 140 units), Store 7 (15.2 hrs cover, 210 units), and Store 12 (18.6 hrs cover, 185 units). Total on-hand inventory across critical stores is reported with current hourly burn-rates."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc1_2_net_revenue_store8",
+      "description": "UC 1.2: Natural language business analytics query for Store 8 Net Transaction Revenue with verbatim business terms.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the Net Transaction Revenue for Store 8 today?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Net Transaction Revenue for Store 8 is retrieved from the pos_transactions_gold ledger as 4,812.45 across 412 completed transactions, with average basket size of 4.50."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc1_3_cashier_realtime_metrics",
+      "description": "UC 1.3: Real-time 1-hour rolling metrics query from Cloud Bigtable for cashier CASH_1190 at Store 48.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Read live 1-hour rolling metrics and audit status flags for Cashier CASH_1190 at Store 48."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Real-Time Cashier Metrics for STORE_048#CASH_1190 from Cloud Bigtable table cashier_realtime_alerts: Audit Status: UNDER_REVIEW, Live 1-Hour Manual Override Rate: 23.08% (6 overrides / 26 txns), Promo Rate: 19.23%, Total Discounts: 85.50, Rolling Risk Score: 0.8872."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc1_4_enriched_pos_transactions",
+      "description": "UC 1.4: Query enriched real-time POS transaction details from Bigtable table pos_transactions_enriched.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Retrieve enriched POS transactions for store 1 with prefix STORE_001#TXN-."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Retrieved enriched POS transactions from Cloud Bigtable table pos_transactions_enriched for STORE_001: Found transaction TXN-20260910-0003385 at terminal TERM_01, cashier CASH_1001, total 5.99, paid via credit_card with applied promo CYMBAL10."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc2_2_parallel_dispatch_comparison",
+      "description": "UC 2.2: Parallel Tool Dispatch: Compare live 1-hour override rate against 7-day historical baseline in a single turn.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is Cashier CASH_1190's live 1-hour override rate right now, compared to their 7-day historical override baseline?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Comparison of Cashier CASH_1190 at Store 48: Live 1-hour manual override rate from Cloud Bigtable is 23.08% (6 overrides in 26 txns, risk score 0.8872), compared to 7-day historical baseline from BigQuery of 2.85%, representing an 8.1x anomaly surge requiring immediate supervisory review."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc2_3_sequential_cross_cloud_audit",
+      "description": "UC 2.3: Sequential Multi-Turn Dispatch: Audit top promo abuse offender in pos_anomaly_alerts then drill into AWS S3 BigLake logs.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Step 1: Top promo abuse offender identified in BigQuery pos_anomaly_alerts is Cashier CASH_1190 at Store 48 with 12 active anomaly alerts. Step 2: Cross-cloud audit logs from AWS S3 BigLake table silver_pos_transactions confirm repeated stacked promotional code overrides on high-value electronics transactions."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
