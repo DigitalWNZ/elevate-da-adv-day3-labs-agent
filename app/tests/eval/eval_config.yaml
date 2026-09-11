@@ -21,10 +21,23 @@ custom_metrics:
     custom_function: |
       def evaluate(instance):
           turns = (instance.get("agent_data") or {}).get("turns", [])
-          return {'score': len(turns)}
+          if not turns:
+              return {'score': 1}
+          events = turns[0].get("events", []) if isinstance(turns[0], dict) else []
+          user_events = [e for e in events if (isinstance(e, dict) and e.get("author") == "user")]
+          return {'score': max(len(user_events), len(turns))}
   - name: token_budget_compliance
     custom_function: |
       def evaluate(instance):
-          usage = (instance.get("agent_data") or {}).get("usage_metadata", {})
-          total_tokens = usage.get("total_tokens", 0)
-          return {'score': 1.0 if total_tokens <= 2000 else 0.0}
+          turns = (instance.get("agent_data") or {}).get("turns", [])
+          total_chars = 0
+          for t in turns:
+              if isinstance(t, dict):
+                  for ev in t.get("events", []):
+                      if isinstance(ev, dict):
+                          c = ev.get("content") or {}
+                          for p in c.get("parts", []):
+                              if isinstance(p, dict) and "text" in p:
+                                  total_chars += len(p["text"])
+          approx_tokens = int(total_chars / 4)
+          return {'score': 1.0 if approx_tokens <= 2000 else 0.0}

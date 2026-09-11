@@ -87,36 +87,6 @@ statement: |
   LIMIT 10;
 ---
 kind: tool
-name: read_pos_transactions_enriched
-type: bigtable-sql
-source: operations-db
-description: Query enriched real-time POS transaction details from Cloud Bigtable table pos_transactions_enriched by row key prefix (e.g. STORE_001#TXN-).
-parameters:
-  - name: row_key_prefix
-    type: string
-    description: Row key prefix formatted as STORE_<store_id_3digits>#TXN- or transaction identifier, e.g. STORE_001#TXN-20260910-0003385
-statement: |
-  SELECT
-    CAST(_key AS STRING) AS row_key,
-    CAST(tx['transaction_id'] AS STRING) AS transaction_id,
-    CAST(tx['store_id'] AS STRING) AS store_id,
-    CAST(tx['pos_terminal_id'] AS STRING) AS pos_terminal_id,
-    CAST(tx['cashier_id'] AS STRING) AS cashier_id,
-    CAST(tx['customer_id'] AS STRING) AS customer_id,
-    CAST(tx['business_date'] AS STRING) AS business_date,
-    CAST(tx['event_timestamp'] AS STRING) AS event_timestamp,
-    TO_FLOAT64(tx['total']) AS total,
-    TO_FLOAT64(tx['subtotal_amount']) AS subtotal_amount,
-    TO_FLOAT64(tx['discount']) AS discount,
-    CAST(tx['payment_method'] AS STRING) AS payment_method,
-    CAST(tx['promo_code_applied'] AS STRING) AS promo_code_applied,
-    TO_INT64(tx['total_quantity']) AS total_quantity
-  FROM pos_transactions_enriched
-  WHERE CAST(_key AS STRING) LIKE CONCAT(@row_key_prefix, '%')
-  ORDER BY CAST(_key AS STRING) DESC
-  LIMIT 10;
----
-kind: tool
 name: bigtable-list-tables
 type: bigtable-list-tables
 source: operations-db
