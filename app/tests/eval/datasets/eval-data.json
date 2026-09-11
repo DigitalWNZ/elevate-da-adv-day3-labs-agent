@@ -20,6 +20,74 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "What is the immediate field recovery protocol when a cashier encounters an ERR-PAY-4001 EMV contactless payment freeze, and how do we ensure the customer is not double-charged?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "args": {
+                          "query": "ERR-PAY-4001 EMV contactless payment freeze"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "response": {
+                          "result": "Manual: Toshiba TCx 810 Guide (https://storage.cloud.google.com/cymbal-ops-runbooks/pos_manual_toshiba_tcx810.pdf)\nERR-PAY-4001: 1. Do not re-charge. 2. Hold Yellow + # for 3s to reboot. 3. Check 12V PoweredUSB. 4. Manager Menu -> Journal Audit Slip."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "To recover from an ERR-PAY-4001 EMV payment freeze on the Toshiba TCx 810: 1. Do not re-swipe or recharge immediately to prevent double charging. 2. Hold Yellow + # on the PIN pad for 3 seconds to reboot the payment module. 3. Check 12V PoweredUSB cabling. 4. Open Manager Menu -> Journal Audit Slip to check transaction status. If AUTHORIZED_UNSETTLED, print receipt slip; if VOIDED_ERROR, re-scan items and request card presentation. Reference manual: https://storage.cloud.google.com/cymbal-ops-runbooks/pos_manual_toshiba_tcx810.pdf"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 145,
+          "candidates_token_count": 210,
+          "total_tokens": 355
+        }
       }
     },
     {
@@ -41,6 +109,74 @@
               "text": "For Diebold Nixdorf BEETLE A1150 error ERR-DN-PRNT-24V (cutter knife lockup): 1. Turn off printer power before manual manipulation. 2. Open printer cover and rotate manual feed knob counter-clockwise to retract the cutter blade. 3. Clear jammed paper shreds and perform test feed. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "How do store clerks resolve a terminal thermal printer cutter lock error code ERR-DN-PRNT-24V on a Diebold Nixdorf BEETLE A1150?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "args": {
+                          "query": "ERR-DN-PRNT-24V thermal printer cutter lock Diebold Nixdorf BEETLE A1150"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "response": {
+                          "result": "Diebold Nixdorf BEETLE A1150 Guide (https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf)\nERR-DN-PRNT-24V: 1. Turn off printer power. 2. Rotate manual feed knob counter-clockwise. 3. Clear jammed paper shreds."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "For Diebold Nixdorf BEETLE A1150 error ERR-DN-PRNT-24V (cutter knife lockup): 1. Turn off printer power before manual manipulation. 2. Open printer cover and rotate manual feed knob counter-clockwise to retract the cutter blade. 3. Clear jammed paper shreds and perform test feed. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 130,
+          "candidates_token_count": 190,
+          "total_tokens": 320
         }
       }
     },
@@ -64,6 +200,74 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "What is the estimated cover hours remaining for store inventory positions experiencing stockout risk of less than 20 hours, and what is their total on-hand inventory?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "What is the estimated cover hours remaining for store inventory positions experiencing stockout risk of less than 20 hours, and what is their total on-hand inventory?"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Critical stockout positions (< 20.0 hrs cover): Store 24 (12.4 hrs cover, 140 on-hand), Store 7 (15.2 hrs cover, 210 on-hand), Store 12 (18.6 hrs cover, 185 on-hand)."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Store inventory positions with critical stockout risk (< 20.0 hours cover) from the gold inventory reconciliation ledger include Store 24 (12.4 hrs cover, 140 units), Store 7 (15.2 hrs cover, 210 units), and Store 12 (18.6 hrs cover, 185 units). Total on-hand inventory across critical stores is reported with current hourly burn-rates."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 160,
+          "candidates_token_count": 220,
+          "total_tokens": 380
+        }
       }
     },
     {
@@ -85,6 +289,74 @@
               "text": "Net Transaction Revenue for Store 8 is retrieved from the pos_transactions_gold ledger as 4,812.45 across 412 completed transactions, with average basket size of 4.50."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "What is the Net Transaction Revenue for Store 8 today?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "What is the Net Transaction Revenue for Store 8 today?"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Net Transaction Revenue for Store 8 today: $4,812.45 across 412 transactions."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Net Transaction Revenue for Store 8 is retrieved from the pos_transactions_gold ledger as 4,812.45 across 412 completed transactions, with average basket size of 4.50."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 120,
+          "candidates_token_count": 150,
+          "total_tokens": 270
         }
       }
     },
@@ -108,11 +380,79 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Read live 1-hour rolling metrics and audit status flags for Cashier CASH_1190 at Store 48."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "read_cashier_realtime_alerts",
+                        "args": {
+                          "row_key_prefix": "STORE_048#CASH_1190"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "read_cashier_realtime_alerts",
+                        "response": {
+                          "result": "Real-Time Cashier Metrics for STORE_048#CASH_1190:\n- Audit Status Flag: UNDER_REVIEW\n- Live 1-Hour Manual Override Rate: 23.08% (6 overrides / 26 txns)\n- Live 1-Hour Promo Rate: 19.23%\n- Live 1-Hour Total Discount USD: $85.50\n- Rolling Risk Score: 0.887200"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Real-Time Cashier Metrics for STORE_048#CASH_1190 from Cloud Bigtable table cashier_realtime_alerts: Audit Status: UNDER_REVIEW, Live 1-Hour Manual Override Rate: 23.08% (6 overrides / 26 txns), Promo Rate: 19.23%, Total Discounts: 85.50, Rolling Risk Score: 0.8872."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 140,
+          "candidates_token_count": 180,
+          "total_tokens": 320
+        }
       }
     },
     {
       "eval_case_id": "eval_uc1_4_enriched_pos_transactions",
-      "description": "UC 1.4: Query enriched real-time POS transaction details from Bigtable table pos_transactions_enriched.",
+      "description": "UC 1.4: Validate lookup parameter format scanning for enriched transaction keys using strict prefix boundaries.",
       "prompt": {
         "role": "user",
         "parts": [
@@ -129,6 +469,74 @@
               "text": "Retrieved enriched POS transactions from Cloud Bigtable table pos_transactions_enriched for STORE_001: Found transaction TXN-20260910-0003385 at terminal TERM_01, cashier CASH_1001, total 5.99, paid via credit_card with applied promo CYMBAL10."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Retrieve enriched POS transactions for store 1 with prefix STORE_001#TXN-."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "read_pos_transactions_enriched_sql",
+                        "args": {
+                          "row_key_prefix": "STORE_001#TXN-"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "read_pos_transactions_enriched_sql",
+                        "response": {
+                          "result": "### Enriched POS Transactions for `STORE_001#TXN-`\n| Transaction ID | Store | Terminal | Cashier | Total ($) | Payment Method | Promo Code | Timestamp |\n| `TXN-20260910-0003385` | 1 | TERM_01 | CASH_1001 | $5.99 | credit_card | `CYMBAL10` | 2026-09-10 14:22:18 |"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Retrieved enriched POS transactions from Cloud Bigtable table pos_transactions_enriched for STORE_001: Found transaction TXN-20260910-0003385 at terminal TERM_01, cashier CASH_1001, total 5.99, paid via credit_card with applied promo CYMBAL10."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 150,
+          "candidates_token_count": 190,
+          "total_tokens": 340
         }
       }
     },
@@ -152,6 +560,90 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "What is Cashier CASH_1190's live 1-hour override rate right now, compared to their 7-day historical override baseline?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "read_cashier_realtime_alerts",
+                        "args": {
+                          "row_key_prefix": "STORE_048#CASH_1190"
+                        }
+                      }
+                    },
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "What is Cashier CASH_1190's 7-day historical override baseline at Store 48?"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "read_cashier_realtime_alerts",
+                        "response": {
+                          "result": "Live 1-Hour Manual Override Rate: 23.08% (6 overrides / 26 txns)"
+                        }
+                      }
+                    },
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "7-day historical override baseline for CASH_1190: 2.85%"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Comparison of Cashier CASH_1190 at Store 48: Live 1-hour manual override rate from Cloud Bigtable is 23.08% (6 overrides in 26 txns, risk score 0.8872), compared to 7-day historical baseline from BigQuery of 2.85%, representing an 8.1x anomaly surge requiring immediate supervisory review."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 210,
+          "candidates_token_count": 260,
+          "total_tokens": 470
+        }
       }
     },
     {
@@ -161,7 +653,7 @@
         "role": "user",
         "parts": [
           {
-            "text": "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender."
+            "text": "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender from AWS S3."
           }
         ]
       },
@@ -170,9 +662,279 @@
           "role": "model",
           "parts": [
             {
-              "text": "Step 1: Top promo abuse offender identified in BigQuery pos_anomaly_alerts is Cashier CASH_1190 at Store 48 with 12 active anomaly alerts. Step 2: Cross-cloud audit logs from AWS S3 BigLake table silver_pos_transactions confirm repeated stacked promotional code overrides on high-value electronics transactions."
+              "text": "Step 1: Top promo abuse offender identified in BigQuery pos_anomaly_alerts is Cashier CASH_1190 at Store 48 with 12 active anomaly alerts. Step 2: Cross-cloud audit logs from AWS S3 BigLake table aws_glue_federated_catalog.silver_pos_transactions confirm repeated stacked promotional code overrides on high-value electronics transactions."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender from AWS S3."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "Rank cashiers by active promo abuse alerts in pos_anomaly_alerts in the last 7 days"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Top offender: Cashier CASH_1190 at Store 48 with 12 active anomaly alerts."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "Query checkout logs for Cashier CASH_1190 from federated AWS S3 table aws_glue_federated_catalog.silver_pos_transactions for the last 7 days"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Retrieved 14 checkout records for CASH_1190 from aws_glue_federated_catalog.silver_pos_transactions showing stacked promos."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Step 1: Top promo abuse offender identified in BigQuery pos_anomaly_alerts is Cashier CASH_1190 at Store 48 with 12 active anomaly alerts. Step 2: Cross-cloud audit logs from AWS S3 BigLake table aws_glue_federated_catalog.silver_pos_transactions confirm repeated stacked promotional code overrides on high-value electronics transactions."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 290,
+          "candidates_token_count": 310,
+          "total_tokens": 600
+        }
+      }
+    },
+    {
+      "eval_case_id": "eval_uc2_3_aws_s3_schema_check",
+      "description": "UC-2.3: Cross-cloud AWS S3 transaction log retrieval and schema adherence validation under aws_glue_federated_catalog.silver_pos_transactions.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Query checkout events for cashier CASH_1164 directly from AWS S3 for the last 3 days."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Query executed on federated AWS S3 silver_pos_transactions: Cashier CASH_1164 transaction list retrieved."
+            }
+          ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Query checkout events for cashier CASH_1164 directly from AWS S3 for the last 3 days."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "Query checkout events for cashier CASH_1164 directly from AWS S3 table aws_glue_federated_catalog.silver_pos_transactions for the last 3 days."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Query executed on federated AWS S3 silver_pos_transactions: Cashier CASH_1164 transaction list retrieved."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Query executed on federated AWS S3 silver_pos_transactions: Cashier CASH_1164 transaction list retrieved."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 140,
+          "candidates_token_count": 120,
+          "total_tokens": 260
+        }
+      }
+    },
+    {
+      "eval_case_id": "mt_intent_switch_01",
+      "description": "Multi-turn transition from POS troubleshooting to inventory analytics validating context retention and router intent switching.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How do I fix ERR-PAY-4001 on Toshiba PIN pad?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Reboot payment module. Ref: https://storage.cloud.google.com/cymbal-ops-runbooks/pos_manual_toshiba_tcx810.pdf"
+            }
+          ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "How do I fix ERR-PAY-4001 on Toshiba PIN pad?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Reboot payment module. Ref: https://storage.cloud.google.com/cymbal-ops-runbooks/pos_manual_toshiba_tcx810.pdf"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Also show items at Store 8 with low stock cover hours today."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Items at Store 8 with critical cover hours: SKU-GROC-1092 with 14.5 hours cover remaining."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 190,
+          "candidates_token_count": 180,
+          "total_tokens": 370
         }
       }
     }

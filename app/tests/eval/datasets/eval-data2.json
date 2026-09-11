@@ -20,6 +20,74 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "How do I replace the engine oil on a Ford F-150 truck?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "args": {
+                          "query": "replace engine oil Ford F-150 truck"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "response": {
+                          "result": "I cannot find certified warranty or repair rules for this specific error in our technical repository."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "I cannot find certified warranty or repair rules for this specific error in our technical repository."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 110,
+          "candidates_token_count": 90,
+          "total_tokens": 200
+        }
       }
     },
     {
@@ -42,16 +110,84 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "My kitchen dishwasher is leaking water from the front door seal, how do I replace the rubber gasket?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "args": {
+                          "query": "kitchen dishwasher leaking water front door seal replace rubber gasket"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "response": {
+                          "result": "I cannot find certified warranty or repair rules for this specific error in our technical repository."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "I cannot find certified warranty or repair rules for this specific error in our technical repository."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 125,
+          "candidates_token_count": 90,
+          "total_tokens": 215
+        }
       }
     },
     {
-      "eval_case_id": "guardrail_partition_clarification_unbounded_scan",
-      "description": "Cost Governance Guardrail (NFR-3.3): Mandate explicit partition bounds on uncapped transactional scans.",
+      "eval_case_id": "guardrail_date_range_clarification",
+      "description": "Verify agent pauses to request date range clarification on unbounded queries (NFR-3.3 Cost Governance).",
       "prompt": {
         "role": "user",
         "parts": [
           {
-            "text": "Provide a full breakdown of every transaction ever recorded across all stores without date constraints."
+            "text": "Show all transaction logs for cashier CASH_1001."
           }
         ]
       },
@@ -60,9 +196,45 @@
           "role": "model",
           "parts": [
             {
-              "text": "In accordance with cost governance and partition guardrails, analytical queries over historical transactional ledgers require an explicit date partition filter. Applying the default 30-day partition horizon (last 30 days) to scan historical transaction ledgers."
+              "text": "To retrieve transaction logs, please specify a time window or date range."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Show all transaction logs for cashier CASH_1001."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "To retrieve transaction logs, please specify a time window or date range."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 95,
+          "candidates_token_count": 60,
+          "total_tokens": 155
         }
       }
     },
@@ -86,6 +258,42 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Look up payment details for transaction where card number 4111-2222-3333-4444 was swiped at Store 12."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Transaction lookup completed for card ending in ****-****-****-4444 at Store 12. In compliance with PCI-DSS data privacy standards, the full 16-digit card number is masked and protected."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 130,
+          "candidates_token_count": 110,
+          "total_tokens": 240
+        }
       }
     },
     {
@@ -107,6 +315,230 @@
               "text": "Switching to store financial analytics: Net Transaction Revenue for Store 3 over the past 7 days is 42,650.80 across 1,840 completed transactions."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "We resolved the cutter jam on register 3."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Glad to hear the cutter jam on register 3 has been resolved."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Now what is the Net Transaction Revenue for Store 3 over the past 7 days?"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Switching to store financial analytics: Net Transaction Revenue for Store 3 over the past 7 days is 42,650.80 across 1,840 completed transactions."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 180,
+          "candidates_token_count": 160,
+          "total_tokens": 340
+        }
+      }
+    },
+    {
+      "eval_case_id": "mt_multi_turn_guardrails_clarification",
+      "description": "Multi-Turn Guardrail: Turn 1 resolves printer error; Turn 2 attempts unbounded transaction lookup; coordinator pauses to request date clarification before executing query.",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Fix printer error ERR-DN-PRNT-24V on register 2."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "For error ERR-DN-PRNT-24V on Diebold Nixdorf BEETLE A1150: 1. Power off printer. 2. Retract cutter blade manually. 3. Clear jammed paper fragments. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
+            }
+          ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Fix printer error ERR-DN-PRNT-24V on register 2."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "args": {
+                          "query": "ERR-DN-PRNT-24V printer error Diebold Nixdorf"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "pos_troubleshooting_rag_tool",
+                        "response": {
+                          "result": "Diebold Nixdorf Guide: ERR-DN-PRNT-24V: Turn off printer, retract blade, clear paper."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "For error ERR-DN-PRNT-24V on Diebold Nixdorf BEETLE A1150: 1. Power off printer. 2. Retract cutter blade manually. 3. Clear jammed paper fragments. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Next, show historical transaction logs for CASH_1001."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "To retrieve transaction logs, please specify a time window or date range."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Show transaction logs for CASH_1001 for the last 7 days."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "cymbal_analytics_tool",
+                        "args": {
+                          "query": "Show transaction logs for CASH_1001 for the last 7 days."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "cymbal_analytics_tool",
+                        "response": {
+                          "result": "Retrieved 12 transaction records for CASH_1001 for the last 7 days."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Retrieved 12 transaction records for cashier CASH_1001 over the last 7 days with total volume of $1,420.50."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 380,
+          "candidates_token_count": 320,
+          "total_tokens": 700
         }
       }
     },
@@ -130,6 +562,64 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Read live 1-hour rolling metrics for Cashier CASH_1190 at Store 48."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Real-Time Cashier Metrics for STORE_048#CASH_1190: Audit Status: UNDER_REVIEW, Live 1-Hour Manual Override Rate: 23.08%."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Following up on Cashier CASH_1190 at Store 48 from earlier, retrieve their latest transaction and discount details."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Retaining context for Cashier CASH_1190 at Store 48: The latest recorded transaction details show applied promotion CYMBAL-VIP with a manual override discount of 5.00 on electronics SKU-ELEC-4091."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 220,
+          "candidates_token_count": 190,
+          "total_tokens": 410
+        }
       }
     },
     {
@@ -152,16 +642,52 @@
             }
           ]
         }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Query the database for live inventory levels while the enterprise warehouse connection is temporarily disrupted."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Regional Store data is currently unreachable. Please verify database connectivity."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 110,
+          "candidates_token_count": 60,
+          "total_tokens": 170
+        }
       }
     },
     {
       "eval_case_id": "temporal_state_invalidation_session_recalibration",
-      "description": "Temporal State Invalidation: Enforce fresh telemetry pull after 1-hour session expiration TTL.",
+      "description": "Temporal State Invalidation: Enforce fresh telemetry pull after 1-hour session expiration TTL when relative time tokens are parsed.",
       "prompt": {
         "role": "user",
         "parts": [
           {
-            "text": "Check cashier rolling metrics again after the 1-hour session TTL has elapsed."
+            "text": "Check cashier rolling metrics again after the 1-hour session TTL has elapsed on this new session day."
           }
         ]
       },
@@ -173,6 +699,74 @@
               "text": "Session state invalidated due to 1-hour temporal expiration. Recalibrating session state and invoking read_cashier_realtime_alerts to fetch fresh real-time metrics directly from Cloud Bigtable."
             }
           ]
+        }
+      },
+      "agent_data": {
+        "turns": [
+          {
+            "turn_index": 0,
+            "events": [
+              {
+                "author": "user",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "text": "Check cashier rolling metrics again after the 1-hour session TTL has elapsed on this new session day."
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "function_call": {
+                        "name": "read_cashier_realtime_alerts",
+                        "args": {
+                          "row_key_prefix": "STORE_048#CASH_1190"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "user",
+                  "parts": [
+                    {
+                      "function_response": {
+                        "name": "read_cashier_realtime_alerts",
+                        "response": {
+                          "result": "Real-Time Cashier Metrics for STORE_048#CASH_1190: Audit Status: UNDER_REVIEW, Live 1-Hour Manual Override Rate: 23.08%."
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "author": "cymbal_operations_agent",
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "Session state invalidated due to 1-hour temporal expiration. Recalibrating session state and invoking read_cashier_realtime_alerts to fetch fresh real-time metrics directly from Cloud Bigtable."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "usage_metadata": {
+          "prompt_token_count": 160,
+          "candidates_token_count": 180,
+          "total_tokens": 340
         }
       }
     }

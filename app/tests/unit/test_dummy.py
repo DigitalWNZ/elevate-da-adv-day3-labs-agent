@@ -236,9 +236,11 @@ def test_coordinator_agent_structure_and_bindings() -> None:
     assert "read_pos_transactions_enriched_sql" in instructions
     assert "Parallel Tool Dispatch" in instructions
     assert "Sequential Multi-Turn Dispatch" in instructions
-    assert "Mandatory Partition Clarification Guardrail" in instructions
+    assert "Mandatory Date Range Clarification Guardrail" in instructions
     assert "Temporal State Invalidation & Session Recalibration" in instructions
     assert "Database Fault Tolerance & Unreachable Fallback" in instructions
+    assert "aws_glue_federated_catalog.silver_pos_transactions" in instructions
+    assert "STORE_<store_id_3digits>#TXN-" in instructions
     assert cymbal_operations_agent.before_agent_callback is partition_clarification_and_temporal_state_guardrail
 
 
@@ -250,6 +252,7 @@ def test_partition_clarification_and_temporal_guardrail() -> None:
     mock_session.state = {
         "last_active_ts": stale_time,
         "old_cached_metric": 42,
+        "cached_cashier_id": "CASH_1190",
     }
     mock_context = MagicMock()
     mock_context.session = mock_session
@@ -258,12 +261,13 @@ def test_partition_clarification_and_temporal_guardrail() -> None:
     partition_clarification_and_temporal_state_guardrail(mock_context)
 
     assert "old_cached_metric" not in mock_session.state
+    assert mock_session.state["cached_cashier_id"] is None
     assert mock_session.state["state_invalidated"] is True
     assert mock_session.state["partition_guardrail_enforced"] is True
     assert mock_session.state["default_partition_window_days"] == 30
     assert mock_session.state["last_active_ts"] > stale_time
 
-    # Test 2: Active session (< 3600 seconds)
+    # Test 2: Active session (< 3600 seconds) with no temporal modifiers
     recent_time = time.time() - 100
     mock_session.state = {
         "last_active_ts": recent_time,
@@ -271,17 +275,57 @@ def test_partition_clarification_and_temporal_guardrail() -> None:
     }
     mock_context2 = MagicMock()
     mock_context2.session = mock_session
-    mock_context2.user_content = None
+    mock_part2 = MagicMock()
+    mock_part2.text = "What is the Net Transaction Revenue for Store 8 today?"
+    mock_context2.user_content.parts = [mock_part2]
 
-    partition_clarification_and_temporal_state_guardrail(mock_context2)
+    res2 = partition_clarification_and_temporal_state_guardrail(mock_context2)
+    assert res2 is None
     assert mock_session.state["active_data"] == "persist"
     assert mock_session.state["partition_guardrail_enforced"] is True
 
     # Test 3: Database Fault Tolerance Interception (NFR-4.1)
     mock_context3 = MagicMock()
-    mock_part = MagicMock()
-    mock_part.text = "Query the database for live inventory levels while the enterprise warehouse connection is temporarily disrupted."
-    mock_context3.user_content.parts = [mock_part]
+    mock_part3 = MagicMock()
+    mock_part3.text = "Query the database for live inventory levels while the enterprise warehouse connection is temporarily disrupted."
+    mock_context3.user_content.parts = [mock_part3]
     intercept_content = partition_clarification_and_temporal_state_guardrail(mock_context3)
     assert intercept_content is not None
     assert intercept_content.parts[0].text == "Regional Store data is currently unreachable. Please verify database connectivity."
+
+    # Test 4: Mandatory Date Range Clarification Guardrail (NFR-3.3)
+    mock_context4 = MagicMock()
+    mock_part4 = MagicMock()
+    mock_part4.text = "Show all transaction logs for cashier CASH_1001."
+    mock_context4.user_content.parts = [mock_part4]
+    clarification_content = partition_clarification_and_temporal_state_guardrail(mock_context4)
+    assert clarification_content is not None
+    assert clarification_content.parts[0].text == "To retrieve transaction logs, please specify a time window or date range."
+
+    # Test 5: Unbounded scan without date constraints
+    mock_context5 = MagicMock()
+    mock_part5 = MagicMock()
+    mock_part5.text = "Provide a full breakdown of every transaction ever recorded across all stores without date constraints."
+    mock_context5.user_content.parts = [mock_part5]
+    clarification_content5 = partition_clarification_and_temporal_state_guardrail(mock_context5)
+    assert clarification_content5 is not None
+    assert clarification_content5.parts[0].text == "To retrieve transaction logs, please specify a time window or date range."
+
+    # Test 6: Relative time tokens parse on new session day flushes cached cashier ID (NFR-4.3)
+    mock_session6 = MagicMock()
+    mock_session6.state = {
+        "last_active_ts": time.time() - 200,  # recent within 1 hour
+        "cached_cashier_id": "CASH_1190",
+        "cashier_id": "CASH_1190",
+    }
+    mock_context6 = MagicMock()
+    mock_context6.session = mock_session6
+    mock_part6 = MagicMock()
+    mock_part6.text = "Check cashier rolling metrics again after the 1-hour session TTL has elapsed on this new session day."
+    mock_context6.user_content.parts = [mock_part6]
+
+    res6 = partition_clarification_and_temporal_state_guardrail(mock_context6)
+    assert res6 is None
+    assert mock_session6.state["cached_cashier_id"] is None
+    assert mock_session6.state["state_invalidated"] is True
+    assert mock_session6.state["temporal_ttl_expired"] is True

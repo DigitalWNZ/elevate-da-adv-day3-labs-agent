@@ -4,12 +4,14 @@ metrics_to_run:
   - grounding
   - custom_response_quality
   - agent_turn_count
+  - token_budget_compliance
 
 thresholds:
   tool_use_quality: 0.85
   grounding: 0.80
   custom_response_quality: 4.0
   overall_quality_gate: 4.0
+  token_budget_compliance: 1.0
 
 custom_metrics:
   # Local LLM-as-judge scoring response quality and groundedness
@@ -20,3 +22,9 @@ custom_metrics:
       def evaluate(instance):
           turns = (instance.get("agent_data") or {}).get("turns", [])
           return {'score': len(turns)}
+  - name: token_budget_compliance
+    custom_function: |
+      def evaluate(instance):
+          usage = (instance.get("agent_data") or {}).get("usage_metadata", {})
+          total_tokens = usage.get("total_tokens", 0)
+          return {'score': 1.0 if total_tokens <= 2000 else 0.0}

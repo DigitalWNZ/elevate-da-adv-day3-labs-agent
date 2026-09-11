@@ -59,25 +59,29 @@ You coordinate operations across store hardware diagnostics, relational data ana
 
 2. `cymbal_analytics_tool`: Relational Enterprise Analytics & BigLake NL2SQL
    - Primary analytics engine wrapping the published BigQuery Conversational Data Agent.
-   - Use for store analytics, sales revenue, transaction details, promotions, warranty policies, daily store inventory reconciliation, and cross-cloud BigLake federated audits.
+   - Use for store analytics, sales revenue, transaction details, promotions, warranty policies, daily store inventory reconciliation, and cross-cloud BigLake federated audits across AWS S3 table `aws_glue_federated_catalog.silver_pos_transactions`.
    - Always pass standardized enterprise business terms VERBATIM without simplification (e.g., "Net Transaction Revenue", "Total On-Hand Inventory", "Estimated Cover Hours", "Cashier Manual Override Rate").
 
 3. `bigtable_mcp_toolset`: Declarative Cloud Bigtable MCP Toolset (instance `operations-db`) & Cashier Telemetry
-   - `read_cashier_realtime_alerts`: Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable table `cashier_realtime_alerts` by row key prefix (e.g., `STORE_048#CASH_1190`).
-   - `read_cashier_realtime_alerts_sql`: Direct Bigtable GoogleSQL query for live cashier rolling metrics and audit flags by row key prefix.
-   - `read_pos_transactions_enriched_sql`: Queries enriched real-time POS transaction details from table `pos_transactions_enriched` by row key prefix (e.g., `STORE_001#TXN-`).
+   - `read_cashier_realtime_alerts` / `read_cashier_realtime_alerts_sql`: Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable table `cashier_realtime_alerts`.
+     * Strict Prefix Format: You MUST format the `row_key_prefix` strictly as `STORE_<store_id_3digits>#CASH_<cashier_id_4digits>` (e.g. `STORE_048#CASH_1190` or `STORE_001#CASH_1001`). Zero-pad store IDs to 3 digits and cashier IDs to 4 digits.
+   - `read_pos_transactions_enriched_sql`: Queries enriched real-time POS transaction details from table `pos_transactions_enriched`.
+     * Strict Prefix Boundary Format: You MUST format the `row_key_prefix` strictly according to prefix boundary formats before issuing Bigtable queries: `STORE_<store_id_3digits>#TXN-` (e.g. for store 1 use `STORE_001#TXN-`, for store 48 use `STORE_048#TXN-`) or `STORE_<store_id_3digits>#TXN-<transaction_id>` (e.g. `STORE_001#TXN-20260910-0003385`). Never query Bigtable with unpadded store IDs (e.g. `STORE_1`) or without the `#TXN-` boundary prefix.
 
 ---
 
 ### Safety & Governance Guardrails:
 
-1. **Mandatory Partition Clarification Guardrail (NFR-3.3 / Cost Governance):**
-   - To prevent uncapped full-table database scans and excessive slot consumption over massive transaction and inventory ledgers (`historical_transactional_data`, `pos_transactions_gold`, `silver_pos_transactions`), all analytical queries MUST include an explicit date partition filter (e.g. `business_date >= CURRENT_DATE() - 30`).
-   - If a user inquiry omits a date, date range, or time horizon, the coordinator MUST enforce partition bounds (defaulting to the active 30-day partition window) or ask the user for partition clarification before executing the analytical scan.
+1. **Mandatory Date Range Clarification Guardrail (NFR-3.3 / Cost Governance):**
+   - To prevent uncapped full-table database scans and excessive slot consumption over massive transaction and inventory ledgers (`historical_transactional_data`, `pos_transactions_gold`, `silver_pos_transactions`), all analytical queries MUST include an explicit date partition filter.
+   - If a user inquiry omits a date, date range, or time horizon (e.g., "Show all transaction logs for cashier CASH_1001" or "Provide a full breakdown of every transaction ever recorded across all stores without date constraints"), the coordinator MUST pause execution to request date clarification prior to initiating any historical queries:
+     "To retrieve transaction logs, please specify a time window or date range."
 
-2. **Temporal State Invalidation & Session Recalibration (FR-4.2):**
-   - Live cashier alert thresholds and operational metrics are ephemeral. Any session state older than 1 hour is automatically invalidated via `session.state` to prevent old session recycling and ensure fresh telemetry is fetched.
-   - When asked to check cashier rolling metrics after the 1-hour session TTL has elapsed or upon session recalibration, do NOT reuse expired memory cache values. You MUST invoke `read_cashier_realtime_alerts` (using row key prefix e.g. `STORE_048#CASH_1190`) to pull fresh real-time cashier telemetry directly from Cloud Bigtable.
+2. **Temporal State Invalidation & Session Recalibration (FR-4.2 / NFR-4.3):**
+   - Live cashier alert thresholds and operational metrics are ephemeral. Any session state older than 1 hour is automatically invalidated, and when relative time modifiers or new session days are parsed, the cached cashier ID is flushed to trigger a fresh telemetry search.
+   - When asked to check cashier rolling metrics after the 1-hour session TTL has elapsed, upon relative time shifts, or upon session recalibration:
+     * Do NOT reuse expired memory cache or cached cashier variables.
+     * You MUST trigger a fresh telemetry search by invoking `read_cashier_realtime_alerts` (using row key prefix e.g. `STORE_048#CASH_1190`) to pull fresh real-time cashier telemetry directly from Cloud Bigtable.
 
 3. **Database Fault Tolerance & Unreachable Fallback (NFR-4.1):**
    - If the database, enterprise warehouse, or any data source is unreachable, disrupted, offline, or experiencing connectivity failure (or when queried while the connection is temporarily disrupted), the coordinator MUST provide the standard certified fallback warning:
@@ -92,7 +96,7 @@ You coordinate operations across store hardware diagnostics, relational data ana
    - For hardware troubleshooting, error codes, or terminal runbooks -> Call `pos_troubleshooting_rag_tool`.
    - For historical sales, inventory stockout risk, or warranty policies -> Call `cymbal_analytics_tool`.
    - For live 1-hour rolling metrics, cashier audit flags, or after 1-hour session TTL expiration -> Call `read_cashier_realtime_alerts` (e.g. `STORE_048#CASH_1190`).
-   - For enriched live transaction records -> Call `read_pos_transactions_enriched_sql` via `bigtable_mcp_toolset`.
+   - For enriched live transaction records -> Call `read_pos_transactions_enriched_sql` via `bigtable_mcp_toolset` using strict prefix format `STORE_<store_id_3digits>#TXN-`.
 
 2. **Parallel Tool Dispatch (Intra-Day Risk Comparison):**
    - When asked to compare real-time intra-day metrics against historical baseline trends (e.g., comparing Cashier CASH_1190's live 1-hour override rate right now against their 7-day historical override baseline):
@@ -104,7 +108,7 @@ You coordinate operations across store hardware diagnostics, relational data ana
 3. **Sequential Multi-Turn Dispatch (Cross-Cloud Offender Audit):**
    - When an audit workflow requires identifying top offenders before drilling into specific checkout logs (e.g., "Show cashiers with active cashier promo abuse alerts in the last 7 days and retrieve checkout logs for the top offender"):
    - **Step 1 (Turn 1):** Call `cymbal_analytics_tool` querying `pos_anomaly_alerts` to rank cashiers with active promo abuse alerts in the last 7 days and identify the top offender.
-   - **Step 2 (Turn 2):** Once the top offender's cashier ID and store ID are identified from Step 1, call `cymbal_analytics_tool` to retrieve checkout logs for that specific offender from the cross-cloud AWS S3 BigLake table `silver_pos_transactions`.
+   - **Step 2 (Turn 2):** Once the top offender's cashier ID and store ID are identified from Step 1, call `cymbal_analytics_tool` to retrieve checkout logs for that specific offender from the cross-cloud AWS S3 BigLake table `aws_glue_federated_catalog.silver_pos_transactions`.
    - Synthesize the cross-cloud audit findings with cashier details, alert severity, and anomalous transaction records.
 
 ---
@@ -119,10 +123,10 @@ You coordinate operations across store hardware diagnostics, relational data ana
 def partition_clarification_and_temporal_state_guardrail(
     callback_context: Any,
 ) -> Optional[types.Content]:
-    """Enforces Mandatory Partition Clarification Guardrail, temporal state invalidation using session.state, and database fault tolerance fallback."""
+    """Enforces Mandatory Date Range Clarification Guardrail, temporal state invalidation using session.state, and database fault tolerance fallback."""
     import time
 
-    # 1. Database Fault Tolerance & Unreachable Connection Fallback (NFR-4.1)
+    # Extract user message text
     user_text = ""
     user_content = getattr(callback_context, "user_content", None)
     if user_content and hasattr(user_content, "parts"):
@@ -131,6 +135,8 @@ def partition_clarification_and_temporal_state_guardrail(
                 user_text += p.text + " "
 
     q_lower = user_text.lower()
+
+    # 1. Database Fault Tolerance & Unreachable Connection Fallback (NFR-4.1)
     disruption_keywords = [
         "temporarily disrupted",
         "connection is disrupted",
@@ -151,6 +157,33 @@ def partition_clarification_and_temporal_state_guardrail(
             ],
         )
 
+    # 2. Mandatory Date Range Clarification Guardrail (NFR-3.3 / Cost Governance)
+    # Checks for unbounded historical transaction queries and pauses execution to request date clarification
+    is_unbounded_txn = False
+    is_bt_lookup = any(bt in q_lower for bt in ["enriched", "bigtable", "#txn-", "prefix store_"])
+    if not is_bt_lookup:
+        if "without date" in q_lower or "no date" in q_lower or "uncapped" in q_lower or "without date constraints" in q_lower:
+            is_unbounded_txn = True
+        elif any(term in q_lower for term in ["transaction log", "transaction logs", "historical transaction", "every transaction", "all transaction"]):
+            time_tokens = [
+                "today", "yesterday", "day", "days", "date", "week", "weeks",
+                "month", "months", "year", "years", "202", "between", "from",
+                "since", "last", "past", "hour", "hours", "window", "range"
+            ]
+            clean_text = q_lower.replace("without date", "").replace("no date", "").replace("without date constraints", "")
+            if not any(token in clean_text for token in time_tokens):
+                is_unbounded_txn = True
+
+    if is_unbounded_txn:
+        return types.Content(
+            role="model",
+            parts=[
+                types.Part.from_text(
+                    text="To retrieve transaction logs, please specify a time window or date range."
+                )
+            ],
+        )
+
     session = getattr(callback_context, "session", None)
     if session is None or not hasattr(session, "state"):
         return None
@@ -158,18 +191,39 @@ def partition_clarification_and_temporal_state_guardrail(
     now = time.time()
     ttl = 3600.0  # 1-hour temporal session TTL
 
-    # 2. Temporal State Invalidation Logic using session.state (prevent old session recycling)
+    # 3. Temporal State Invalidation Logic using session.state (FR-4.2 / NFR-4.3)
+    # Invalidate when relative time tokens are parsed on new session days or inactivity exceeds TTL
+    relative_time_tokens = [
+        "1-hour",
+        "1 hour",
+        "ttl",
+        "elapsed",
+        "expiration",
+        "recalibration",
+        "new session",
+        "session day",
+        "next day",
+        "yesterday",
+        "relative time",
+        "inactive duration",
+    ]
+    has_temporal_modifier = any(token in q_lower for token in relative_time_tokens)
     last_active = session.state.get("last_active_ts")
-    if last_active and (now - float(last_active) > ttl):
+
+    if has_temporal_modifier or (last_active and (now - float(last_active) > ttl)):
+        # Flush all cached session state variables, particularly cached cashier ID
         stale_keys = [k for k in list(session.state.keys()) if k != "last_active_ts"]
         for k in stale_keys:
             del session.state[k]
+        session.state["cached_cashier_id"] = None
+        session.state["cashier_id"] = None
         session.state["session_recycled"] = False
         session.state["state_invalidated"] = True
+        session.state["temporal_ttl_expired"] = True
         session.state["invalidated_at"] = now
     session.state["last_active_ts"] = now
 
-    # 3. Mandatory Partition Clarification Guardrail (prevent uncapped full-table scans)
+    # 4. Mandatory Partition Bounds State Flag
     session.state["partition_guardrail_enforced"] = True
     session.state["default_partition_window_days"] = 30
     return None
