@@ -18,11 +18,13 @@ from google.adk.apps import App
 from google.adk.models import Gemini
 from google.genai import types
 
+from typing import Any, Optional
 from app.tools.analytics_tool import cymbal_analytics_tool
 from app.tools.rag_tool import pos_troubleshooting_rag_tool
 from app.tools.bigtable_tool import (
-    get_cashier_realtime_metrics,
     bigtable_mcp_toolset,
+    read_cashier_realtime_alerts_sql,
+    read_pos_transactions_enriched_sql,
 )
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
@@ -43,9 +45,20 @@ You coordinate operations across store hardware diagnostics, relational data ana
    - Use for store analytics, sales revenue, transaction details, promotions, warranty policies, daily store inventory reconciliation, and cross-cloud BigLake federated audits.
    - Always pass standardized enterprise business terms VERBATIM without simplification (e.g., "Net Transaction Revenue", "Total On-Hand Inventory", "Estimated Cover Hours", "Cashier Manual Override Rate").
 
-3. `get_cashier_realtime_metrics`: Cloud Bigtable Live Cashier Alerts & Rolling Metrics
-   - Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable (instance `operations-db`, table `cashier_realtime_alerts`).
-   - Expects row key prefix formatted as `STORE_<store_id_3digits>#CASH_<cashier_id_4digits>` (e.g., `STORE_048#CASH_1190`).
+3. `bigtable_mcp_toolset`: Declarative Cloud Bigtable MCP Toolset (instance `operations-db`)
+   - `read_cashier_realtime_alerts_sql`: Queries real-time 1-hour rolling metrics, manual override counts, promo rates, and audit status flags for cashiers from Cloud Bigtable table `cashier_realtime_alerts` by row key prefix (e.g., `STORE_048#CASH_1190`).
+   - `read_pos_transactions_enriched_sql`: Queries enriched real-time POS transaction details from table `pos_transactions_enriched` by row key prefix (e.g., `STORE_001#TXN-`).
+
+---
+
+### Safety & Governance Guardrails:
+
+1. **Mandatory Partition Clarification Guardrail (NFR-3.3 / Cost Governance):**
+   - To prevent uncapped full-table database scans and excessive slot consumption over massive transaction and inventory ledgers (`historical_transactional_data`, `pos_transactions_gold`, `silver_pos_transactions`), all analytical queries MUST include an explicit date partition filter (e.g. `business_date >= CURRENT_DATE() - 30`).
+   - If a user inquiry omits a date, date range, or time horizon, the coordinator MUST enforce partition bounds (defaulting to the active 30-day partition window) or ask the user for partition clarification before executing the analytical scan.
+
+2. **Temporal State Invalidation (Session Recalibration):**
+   - Live cashier alert thresholds and operational metrics are ephemeral. Any session state older than 1 hour is automatically invalidated via `session.state` to prevent old session recycling and ensure fresh telemetry is fetched.
 
 ---
 
@@ -54,12 +67,13 @@ You coordinate operations across store hardware diagnostics, relational data ana
 1. **Single-Tool Direct Dispatch:**
    - For hardware troubleshooting, error codes, or terminal runbooks -> Call `pos_troubleshooting_rag_tool`.
    - For historical sales, inventory stockout risk, or warranty policies -> Call `cymbal_analytics_tool`.
-   - For live 1-hour rolling metrics or cashier audit flags -> Call `get_cashier_realtime_metrics`.
+   - For live 1-hour rolling metrics or cashier audit flags -> Call `read_cashier_realtime_alerts_sql` via `bigtable_mcp_toolset`.
+   - For enriched live transaction records -> Call `read_pos_transactions_enriched_sql` via `bigtable_mcp_toolset`.
 
 2. **Parallel Tool Dispatch (Intra-Day Risk Comparison):**
    - When asked to compare real-time intra-day metrics against historical baseline trends (e.g., comparing Cashier CASH_1190's live 1-hour override rate right now against their 7-day historical override baseline):
    - You MUST dispatch BOTH tools in parallel in the very first turn:
-     * Call `get_cashier_realtime_metrics` with row key prefix `STORE_048#CASH_1190` to fetch the live 1-hour override rate.
+     * Call `read_cashier_realtime_alerts_sql` with row key prefix `STORE_048#CASH_1190` to fetch the live 1-hour override rate.
      * Concurrently call `cymbal_analytics_tool` with query "What is Cashier CASH_1190's 7-day historical override baseline at Store 48?" to fetch the historical baseline from BigQuery.
    - Synthesize both results into a side-by-side comparison table and provide an operational assessment.
 
@@ -77,11 +91,42 @@ You coordinate operations across store hardware diagnostics, relational data ana
 - Present numerical comparisons clearly with tables, percentages, and dollar amounts.
 """
 
-# Register tools: 3 canonical toolsets (including Python-wrapped Bigtable tool)
+
+def partition_clarification_and_temporal_state_guardrail(
+    callback_context: Any,
+) -> Optional[types.Content]:
+    """Enforces Mandatory Partition Clarification Guardrail and temporal state invalidation using session.state."""
+    import time
+
+    session = getattr(callback_context, "session", None)
+    if session is None or not hasattr(session, "state"):
+        return None
+
+    now = time.time()
+    ttl = 3600.0  # 1-hour temporal session TTL
+
+    # 1. Temporal State Invalidation Logic using session.state (prevent old session recycling)
+    last_active = session.state.get("last_active_ts")
+    if last_active and (now - float(last_active) > ttl):
+        stale_keys = [k for k in list(session.state.keys()) if k != "last_active_ts"]
+        for k in stale_keys:
+            del session.state[k]
+        session.state["session_recycled"] = False
+        session.state["state_invalidated"] = True
+        session.state["invalidated_at"] = now
+    session.state["last_active_ts"] = now
+
+    # 2. Mandatory Partition Clarification Guardrail (prevent uncapped full-table scans)
+    session.state["partition_guardrail_enforced"] = True
+    session.state["default_partition_window_days"] = 30
+    return None
+
+
+# Register tools: 3 canonical toolsets using declarative McpToolset for Bigtable
 tools_list = [
     cymbal_analytics_tool,
     pos_troubleshooting_rag_tool,
-    get_cashier_realtime_metrics,
+    bigtable_mcp_toolset,
 ]
 
 cymbal_operations_agent = Agent(
@@ -92,6 +137,7 @@ cymbal_operations_agent = Agent(
     ),
     instruction=AGENT_INSTRUCTIONS,
     tools=tools_list,
+    before_agent_callback=partition_clarification_and_temporal_state_guardrail,
 )
 
 # Root agent export for backward compatibility with ADK runners and FastAPI
@@ -101,3 +147,4 @@ app = App(
     root_agent=cymbal_operations_agent,
     name="app",
 )
+

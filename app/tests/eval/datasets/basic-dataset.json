@@ -36,7 +36,7 @@
           "role": "model",
           "parts": [
             {
-              "text": "I cannot find certified warranty or repair rules for this specific error in our technical repository. Please contact Support."
+              "text": "I cannot find certified warranty or repair rules for this specific error in our technical repository."
             }
           ]
         }
@@ -142,6 +142,69 @@
           "parts": [
             {
               "text": "Cashier CASH_1190 at Store 48 is the top offender with 12 active promo abuse alerts in the last 7 days. Cross-cloud AWS S3 BigLake checkout logs for CASH_1190 show repeated stacked promo overrides exceeding thresholds."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc1_1b_printer_error_recovery",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How do I clear a paper jam and knife cutter lockup on a Diebold Nixdorf BEETLE A1150 terminal reporting ERR-DN-PRNT-24V?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "For Diebold Nixdorf BEETLE A1150 reporting error ERR-DN-PRNT-24V (printer knife cutter lockup): 1. Turn off printer power before manual manipulation. 2. Open the printer service cover and rotate the manual feed knob to clear the cutter blade lockup. 3. Remove jammed thermal receipt roll remnants and perform a test feed. Link: https://storage.cloud.google.com/cymbal-ops-runbooks/diebold_nixdorf_beetle_a1150_service.pdf"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc1_4_enriched_pos_transactions",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Retrieve enriched POS transactions for store 1 with prefix STORE_001#TXN-."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Retrieved enriched POS transactions from Cloud Bigtable table pos_transactions_enriched for STORE_001. Transactions include TXN-20260910-0003385 for terminal TERM_01 cashier CASH_1001 with applied promo CYMBAL10."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "uc3_partition_governance_clarification",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Analyze total sales revenue and transaction count across all stores."
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "In accordance with cost governance and partition guardrails, analytical queries over historical transactions require a date partition filter. Applying the default 30-day partition horizon (last 30 days) to scan historical transaction ledgers."
             }
           ]
         }

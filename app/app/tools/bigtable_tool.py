@@ -62,7 +62,7 @@ def _get_id_token(target_audience: str) -> str:
         raise
 
 
-def get_cashier_realtime_metrics(row_key_prefix: str) -> str:
+def read_cashier_realtime_alerts_sql(row_key_prefix: str) -> str:
     """Queries real-time 1-hour rolling metrics and audit status flags for a cashier in Cloud Bigtable.
 
     Use this tool to inspect live operational metrics, cashier manual override rates,
@@ -90,7 +90,7 @@ def get_cashier_realtime_metrics(row_key_prefix: str) -> str:
                 "id": int(time.time()),
                 "method": "tools/call",
                 "params": {
-                    "name": "get_cashier_realtime_metrics",
+                    "name": "read_cashier_realtime_alerts_sql",
                     "arguments": {
                         "row_key_prefix": row_key_prefix,
                     },
@@ -158,6 +158,98 @@ def get_cashier_realtime_metrics(row_key_prefix: str) -> str:
     return f"Unable to reach Bigtable MCP service for row key `{row_key_prefix}`. Please verify microservice health."
 
 
+# Alias for backward compatibility
+get_cashier_realtime_metrics = read_cashier_realtime_alerts_sql
+
+
+def read_pos_transactions_enriched_sql(row_key_prefix: str) -> str:
+    """Queries enriched real-time POS transaction details from Cloud Bigtable table pos_transactions_enriched.
+
+    Use this tool to inspect real-time transaction amounts, payment methods, terminal IDs,
+    loyalty tiers, and promo codes applied for a store or transaction.
+
+    Args:
+        row_key_prefix: Bigtable row key prefix formatted as STORE_<store_id_3digits>#TXN- or transaction identifier,
+                        e.g. STORE_001#TXN-20260910-0003385 or STORE_048#TXN-.
+
+    Returns:
+        A markdown-formatted table of enriched transactions retrieved from Cloud Bigtable.
+    """
+    max_retries = 3
+    delay = 1.5
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            token = _get_id_token(DEFAULT_BIGTABLE_MCP_URL)
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "jsonrpc": "2.0",
+                "id": int(time.time()),
+                "method": "tools/call",
+                "params": {
+                    "name": "read_pos_transactions_enriched_sql",
+                    "arguments": {
+                        "row_key_prefix": row_key_prefix,
+                    },
+                },
+            }
+            resp = requests.post(
+                f"{DEFAULT_BIGTABLE_MCP_URL}/mcp",
+                json=payload,
+                headers=headers,
+                timeout=15,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                result = data.get("result", {})
+                content = result.get("content", [])
+                if content:
+                    records = []
+                    for c in content:
+                        text_val = c.get("text", "")
+                        try:
+                            records.append(json.loads(text_val))
+                        except Exception:
+                            records.append({"raw": text_val})
+
+                    if not records:
+                        return f"No enriched transaction records found for prefix: `{row_key_prefix}`."
+
+                    md = [
+                        f"### Enriched POS Transactions for `{row_key_prefix}`",
+                        f"Found {len(records)} recent transaction(s):\n",
+                        "| Transaction ID | Store | Terminal | Cashier | Total ($) | Payment Method | Promo Code | Timestamp |",
+                        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+                    ]
+                    for r in records:
+                        tid = r.get("transaction_id", "N/A")
+                        store = r.get("store_id", "N/A")
+                        term = r.get("pos_terminal_id", "N/A")
+                        cashier = r.get("cashier_id", "N/A")
+                        tot = f"${r.get('total', 0.0):.2f}"
+                        pm = r.get("payment_method", "N/A")
+                        promo = r.get("promo_code_applied", "None")
+                        ts = r.get("event_timestamp", "N/A")
+                        md.append(f"| `{tid}` | {store} | {term} | {cashier} | {tot} | {pm} | `{promo}` | {ts} |")
+
+                    return "\n".join(md)
+
+                return f"No enriched transaction records found in Bigtable for `{row_key_prefix}`."
+
+            logger.warning("Bigtable MCP call returned status %d on attempt %d", resp.status_code, attempt)
+        except Exception as ex:
+            logger.warning("Bigtable MCP call failed on attempt %d: %s", attempt, ex)
+
+        if attempt < max_retries:
+            time.sleep(delay)
+            delay *= 2
+
+    return f"Unable to reach Bigtable MCP service for row key `{row_key_prefix}`. Please verify microservice health."
+
+
 def create_bigtable_mcp_toolset() -> McpToolset:
     """Factory to create ADK McpToolset instance connected to Cloud Run microservice."""
     token = _get_id_token(DEFAULT_BIGTABLE_MCP_URL)
@@ -170,7 +262,7 @@ def create_bigtable_mcp_toolset() -> McpToolset:
     )
 
 
-# Export toolset instance
+# Export declarative toolset instance
 try:
     bigtable_mcp_toolset = create_bigtable_mcp_toolset()
 except Exception as e:

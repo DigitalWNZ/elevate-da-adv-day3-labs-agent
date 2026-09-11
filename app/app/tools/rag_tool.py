@@ -24,7 +24,7 @@ CHUNK_TABLE = os.getenv(
 )
 SIMILARITY_THRESHOLD = 0.70
 CERTIFIED_WARNING = (
-    "I cannot find certified warranty or repair rules for this specific error in our technical repository. Please contact Support."
+    "I cannot find certified warranty or repair rules for this specific error in our technical repository."
 )
 
 
@@ -54,9 +54,9 @@ def pos_troubleshooting_rag_tool(query: str) -> str:
     max_retries = 3
     delay = 1.5
 
-    # Inline error code regex parsing
-    error_match = re.search(r"\b[A-Za-z0-9]+-[A-Za-z0-9-]+\b", query)
-    error_code = error_match.group(0) if error_match else ""
+    # Inline error code regex parsing strictly matching ERR-[A-Z0-9_-]+
+    error_match = re.search(r"\b(ERR-[A-Z0-9_-]+)\b", query)
+    error_code = error_match.group(1) if error_match else ""
 
     # 1. Vector Search Query with Adjacent Context Stitching and CASE WHEN Boosting
     vector_sql = f"""
@@ -143,8 +143,8 @@ def pos_troubleshooting_rag_tool(query: str) -> str:
 
     # 2. If vector search failed or fell below threshold, try full-text SEARCH fallback
     if not best_match:
-        # Extract alphanumeric error tokens (e.g. ERR-PAY-4001, ERR_*, or salient keywords)
-        error_tokens = re.findall(r"[A-Za-z0-9]+-[A-Za-z0-9-]+", query)
+        # Extract error tokens strictly matching ERR-[A-Z0-9_-]+
+        error_tokens = re.findall(r"\b(ERR-[A-Z0-9_-]+)\b", query)
         search_terms = []
         if error_tokens:
             search_terms = [f"`{tok}`" for tok in error_tokens]
